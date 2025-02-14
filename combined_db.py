@@ -5,23 +5,20 @@ Combined database for managing walking/running and carpooling activities.
 import mysql.connector
 from mysql.connector import Error
 
-
 # Database connection
-def create_connection(combined_db):
+def create_connection(db_name):
     connection = None
     try:
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
             password='npol',
-            database=combined_db
-
+            database=db_name
         )
-        print(f"Connection to MySQL DB '{combined_db}' successful")
+        print(f"Connection to MySQL DB '{db_name}' successful")
     except Error as e:
         print(f"The error '{e}' occurred")
     return connection
-
 
 # Create tables
 def create_tables(connection):
@@ -92,7 +89,6 @@ def create_tables(connection):
     except Error as e:
         print(f"The error '{e}' occurred")
 
-
 # Add a new user
 def add_user(connection, name, email):
     cursor = connection.cursor()
@@ -105,7 +101,6 @@ def add_user(connection, name, email):
     except Error as e:
         print(f"The error '{e}' occurred")
 
-
 # Add a friend relationship
 def add_friend(connection, user_id, friend_id):
     cursor = connection.cursor()
@@ -117,7 +112,6 @@ def add_friend(connection, user_id, friend_id):
         print("Friend added successfully")
     except Error as e:
         print(f"The error '{e}' occurred")
-
 
 # Record a carpool trip
 def record_carpool_trip(connection, user_id, friend_id, distance, trip_date):
@@ -141,10 +135,8 @@ def record_carpool_trip(connection, user_id, friend_id, distance, trip_date):
     except Error as e:
         print(f"The error '{e}' occurred")
 
-
 # Record a walking/running trip
-def record_walking_running_trip(connection, user_id, initial_distance, final_distance, trip_time, initial_location,
-                                final_location, trip_date):
+def record_walking_running_trip(connection, user_id, initial_distance, final_distance, trip_time, initial_location, final_location, trip_date):
     cursor = connection.cursor()
     try:
         distance = final_distance - initial_distance
@@ -157,12 +149,11 @@ def record_walking_running_trip(connection, user_id, initial_distance, final_dis
         cursor.execute("""
         UPDATE Users SET total_distance = total_distance + %s WHERE user_id = %s
         """, (distance, user_id))
+
         connection.commit()
         print("Walking/Running trip recorded successfully")
     except Error as e:
-        (
-            print(f"The error '{e}' occurred"))
-
+        print(f"The error '{e}' occurred")
 
 # Issue rewards based on distance
 def issue_rewards(connection):
@@ -170,8 +161,8 @@ def issue_rewards(connection):
     try:
         # Calculate rewards based on total distance
         cursor.execute("""
-            SELECT user_id, total_distance FROM Users
-            """)
+        SELECT user_id, total_distance FROM Users
+        """)
         users = cursor.fetchall()
 
         for user in users:
@@ -180,14 +171,13 @@ def issue_rewards(connection):
 
             if reward_points > 0:
                 cursor.execute("""
-                    INSERT INTO Rewards (user_id, reward_points, reward_date) VALUES (%s, %s, CURDATE())
-                    """, (user_id, reward_points))
+                INSERT INTO Rewards (user_id, reward_points, reward_date) VALUES (%s, %s, CURDATE())
+                """, (user_id, reward_points))
 
         connection.commit()
         print("Rewards issued successfully")
     except Error as e:
         print(f"The error '{e}' occurred")
-
 
 # Main function
 def main():
@@ -205,7 +195,6 @@ def main():
         issue_rewards(connection)
 
         connection.close()
-
 
 if __name__ == "__main__":
     main()
