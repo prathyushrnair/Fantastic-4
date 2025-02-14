@@ -1,12 +1,10 @@
 import time
 import geocoder
 from geopy.distance import geodesic
-from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivymd.app import MDApp
-from kivymd.uix.button import MDRaisedButton
+from kivy.uix.screenmanager import ScreenManager, Screen
 import mysql.connector
 from mysql.connector import Error
 
@@ -50,6 +48,7 @@ ScreenManager:
         on_press: 
             app.activity = "Walking"
             app.root.current = "tracking"
+            app.start_tracking()
 
     MDRaisedButton:
         text: "Cycling"
@@ -57,6 +56,7 @@ ScreenManager:
         on_press: 
             app.activity = "Cycling"
             app.root.current = "tracking"
+            app.start_tracking()
 
     MDRaisedButton:
         text: "Public Transport"
@@ -64,6 +64,7 @@ ScreenManager:
         on_press: 
             app.activity = "Public Transport"
             app.root.current = "tracking"
+            app.start_tracking()
 
 <TrackingScreen>:
     name: "tracking"
@@ -96,28 +97,25 @@ ScreenManager:
             app.root.current = "activity"
 """
 
+
 class LoginScreen(Screen):
     pass
+
 
 class ActivityScreen(Screen):
     pass
 
+
 class TrackingScreen(Screen):
     pass
+
 
 class EcoCommuteApp(MDApp):
     def build(self):
         self.activity = None  # To store selected activity
-        self.sm = ScreenManager()
-        self.sm.add_widget(LoginScreen(name="login"))
-        self.sm.add_widget(ActivityScreen(name="activity"))
-        self.sm.add_widget(TrackingScreen(name="tracking"))
-        return Builder.load_string(KV)
-
-    def on_start(self):
-        """Initialize tracking when the user enters the tracking screen."""
         self.initial_point = None
         self.running = False
+        return Builder.load_string(KV)  # Return built UI
 
     def start_tracking(self):
         """Start location tracking."""
@@ -125,7 +123,7 @@ class EcoCommuteApp(MDApp):
         self.initial_point = self.get_location()
         if self.initial_point:
             self.update_ui()
-            Clock.schedule_interval(self.track_location, 5)  # Runs every 5 seconds
+            Clock.schedule_interval(self.track_location, 5)  # Update every 5 seconds
 
     def stop_tracking(self):
         """Stop location tracking."""
@@ -157,7 +155,7 @@ class EcoCommuteApp(MDApp):
 
     def update_ui(self, location=None, distance=0):
         """Update UI elements with new location and distance."""
-        screen = self.sm.get_screen("tracking")
+        screen = self.root.get_screen("tracking")
         screen.ids.activity_label.text = f"Tracking {self.activity}..."
         screen.ids.location_label.text = f"Location: {location}" if location else "Fetching location..."
         screen.ids.distance_label.text = f"Distance: {distance:.2f} km"
@@ -183,6 +181,7 @@ class EcoCommuteApp(MDApp):
         connection.close()
         print(f"Trip saved: {initial_location} -> {final_location}, Distance: {distance} km")
 
+
 def create_connection():
     """Connect to MySQL database."""
     try:
@@ -197,5 +196,6 @@ def create_connection():
         print(f"Error: {e}")
         return None
 
-if __name__ == "_main_":
+
+if __name__ == "__main__":  # ✅ Fixed Typo
     EcoCommuteApp().run()
